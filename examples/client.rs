@@ -1,13 +1,26 @@
-use std::{io, mem};
 use slowcat::*;
+use std::{io, mem};
 
-const REMOTE_ADDR: u32 = INADDR_LOOPBACK; // 127.0.0.1
-const REMOTE_PORT: u16 = 8080;
 const RX_BUFFER_SIZE: usize = 256;
-
 type RxBuffer = [u8; RX_BUFFER_SIZE];
 
+use clap::Parser;
+use std::net::Ipv4Addr;
+
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(short, long)]
+    ip: Ipv4Addr,
+    #[clap(short, long)]
+    port: u16,
+}
+
 fn main() -> Result<(), io::Error> {
+    let args = Args::parse();
+    let remote_addr = args.ip.to_bits();
+    let remote_port = args.port;
+
     // 1. socket()
     let sockfd = socket(AF_INET, SOCK_STREAM, 0)?;
 
@@ -28,9 +41,9 @@ fn main() -> Result<(), io::Error> {
             sin_family: AF_INET as libc::sa_family_t, // IPv4
             // NOTE: s_addr & sin_port are in network byte order (big endian)
             sin_addr: in_addr {
-                s_addr: REMOTE_ADDR.to_be(),
+                s_addr: remote_addr.to_be() as libc::in_addr_t,
             },
-            sin_port: REMOTE_PORT.to_be(),
+            sin_port: remote_port.to_be() as libc::in_port_t,
             sin_zero: [0; 8],
         },
     )?;

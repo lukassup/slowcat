@@ -11,7 +11,7 @@ In one terminal session - start `tcpstates` from [bcc-tools](https://github.com/
 In another terminal session - build and run demo server:
 
 ```console
-% cargo run --example server
+% cargo run --example server -- -i 127.0.0.1 -p 8080
 socket()
 bind()
 listen()
@@ -27,7 +27,7 @@ close()
 In another terminal session - build and run demo client:
 
 ```console
-% cargo run --example client
+% cargo run --example client -- -i 127.0.0.1 -p 8080
 socket()
 connect()
 write()
@@ -49,5 +49,4 @@ TIME(s)   SKADDR           C-PID C-COMM     LADDR           LPORT RADDR         
 2.234091  ffff9b7610712f80 120835 server     127.0.0.1       8080  127.0.0.1       56778 FIN_WAIT1   -> CLOSING     0.009
 2.234094  ffff9b7610712f80 120835 server     127.0.0.1       8080  127.0.0.1       56778 CLOSING     -> CLOSE       0.001
 2.234100  ffff9b7900eea600 120835 server     127.0.0.1       8080  0.0.0.0         0     LISTEN      -> CLOSE       2234.095
-
 ```
