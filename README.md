@@ -8,7 +8,7 @@ In one terminal session - start `tcpstates` from [bcc-tools](https://github.com/
 % sudo /usr/share/bcc/tools/tcpstates -4 -L 8080 -tT
 ```
 
-In another terminal session - build and run this demo server:
+In another terminal session - build and run demo server:
 
 ```console
 % cargo run --example server
@@ -24,7 +24,7 @@ close()
 close()
 ```
 
-In another terminal session - run netcat client
+In another terminal session - build and run demo client:
 
 ```console
 % cargo run --example client
