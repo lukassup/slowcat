@@ -36,8 +36,7 @@ fn main() -> Result<(), io::Error> {
     let s = std::str::from_utf8(&buffer).unwrap_or("");
     println!("[rx_len={rx_bytes}] <- {s}");
 
-
-    // 7. close()
+    // 5. close()
     close(sockfd)?;
 
     Ok(())
