@@ -16,13 +16,23 @@ fn main() -> Result<(), io::Error> {
     bind(
         listen_sockfd,
         sockaddr_in {
-            sin_family: AF_INET as u16, // IPv4
+            #[cfg(any(
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "ios",
+                target_os = "macos",
+                target_os = "netbsd",
+                target_os = "openbsd",
+            ))]
+            sin_len: 0,
+
+            sin_family: AF_INET as libc::sa_family_t, // IPv4
             // NOTE: s_addr & sin_port are in network byte order (big endian)
             sin_addr: in_addr {
                 s_addr: LISTEN_ADDR.to_be(),
             },
             sin_port: LISTEN_PORT.to_be(),
-            sin_zero: [0u8; 8],
+            sin_zero: [0; 8],
         },
     )?;
 
