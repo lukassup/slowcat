@@ -37,6 +37,7 @@ fn main() -> Result<(), io::Error> {
 
     // 2. bind()
     #[cfg(not(windows))]
+    // SO_REUSEADDR allows reusing recently closed sockets in TIME_WAIT state
     setsockopt(listen_sockfd, libc::SOL_SOCKET, libc::SO_REUSEADDR, 1)?;
     bind(
         listen_sockfd,
