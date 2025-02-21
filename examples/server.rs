@@ -1,7 +1,9 @@
-use clap::Parser;
 use slowcat::*;
+
 use std::net::Ipv4Addr;
 use std::{io, mem};
+
+use clap::Parser;
 
 const LISTEN_BACKLOG: i32 = 5;
 const RX_BUFFER_SIZE: usize = 256;
@@ -22,7 +24,16 @@ fn main() -> Result<(), io::Error> {
     let listen_port = args.port;
 
     // 1. socket()
-    let listen_sockfd = socket(AF_INET, SOCK_STREAM, 0)?;
+    let listen_sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0)?;
+    #[cfg(any(
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_vendor = "apple"
+    ))]
+    // By default write() to a closed socket sends a signal. Setting
+    // SO_NOSIGPIPE throws EPIPE error instead which is easy to handle
+    setsockopt(listen_sockfd, libc::SOL_SOCKET, libc::SO_NOSIGPIPE, 1)?;
 
     // 2. bind()
     bind(
@@ -31,10 +42,8 @@ fn main() -> Result<(), io::Error> {
             #[cfg(any(
                 target_os = "dragonfly",
                 target_os = "freebsd",
-                target_os = "ios",
-                target_os = "macos",
                 target_os = "netbsd",
-                target_os = "openbsd",
+                target_vendor = "apple"
             ))]
             sin_len: 0,
 

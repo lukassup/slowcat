@@ -1,18 +1,23 @@
 /**
  * Some primitive Rust wrappers for libc calls
  */
+use std::io;
+use std::mem;
 
 pub use libc::AF_INET;
 pub use libc::INADDR_LOOPBACK;
 pub use libc::SOCK_STREAM;
+pub use libc::c_int;
+pub use libc::c_void;
 pub use libc::in_addr;
 pub use libc::sockaddr_in;
+pub use libc::socklen_t;
+pub use libc::ssize_t;
 
-use std::io;
-
-use libc::c_int;
-use libc::c_void;
-use libc::ssize_t;
+#[cfg(not(target_vendor = "apple"))]
+pub const SOCK_CLOEXEC: c_int = libc::SOCK_CLOEXEC;
+#[cfg(target_vendor = "apple")]
+pub const SOCK_CLOEXEC: c_int = 0;
 
 /// man 2 errno
 pub fn errno() -> io::Error {
@@ -29,14 +34,37 @@ pub fn socket(domain: c_int, ty: c_int, protocol: c_int) -> Result<c_int, io::Er
     Ok(sockfd)
 }
 
+/// man 2 setsockopt
+pub fn setsockopt<T>(
+    socket: c_int,
+    level: c_int,
+    option_name: c_int,
+    option_value: T,
+) -> Result<c_int, io::Error> {
+    println!("setsockopt()");
+    let sockfd = unsafe {
+        libc::setsockopt(
+            socket,
+            level,
+            option_name,
+            (&raw const option_value) as *const _,
+            mem::size_of::<T>() as socklen_t,
+        )
+    };
+    if sockfd < 0 {
+        return Err(errno());
+    }
+    Ok(sockfd)
+}
+
 /// man 2 connect
-pub fn connect(socket: c_int, address: libc::sockaddr_in) -> Result<(), io::Error> {
+pub fn connect<T>(socket: c_int, address: T) -> Result<(), io::Error> {
     println!("connect()");
     let retval = unsafe {
         libc::connect(
             socket,
-            (&address as *const libc::sockaddr_in).cast(),
-            size_of::<libc::sockaddr_in>().try_into().unwrap(),
+            (&address as *const T).cast(),
+            size_of::<T>().try_into().unwrap(),
         )
     };
     if retval < 0 {
@@ -46,13 +74,13 @@ pub fn connect(socket: c_int, address: libc::sockaddr_in) -> Result<(), io::Erro
 }
 
 /// man 2 bind
-pub fn bind(socket: c_int, address: libc::sockaddr_in) -> Result<(), io::Error> {
+pub fn bind<T>(socket: c_int, address: T) -> Result<(), io::Error> {
     println!("bind()");
     let retval = unsafe {
         libc::bind(
             socket,
-            (&address as *const libc::sockaddr_in).cast(),
-            size_of::<libc::sockaddr_in>().try_into().unwrap(),
+            (&address as *const T).cast(),
+            size_of::<T>().try_into().unwrap(),
         )
     };
     if retval < 0 {
@@ -71,11 +99,21 @@ pub fn listen(socket: c_int, backlog: c_int) -> Result<(), io::Error> {
 }
 
 /// man 2 accept
+/// man 2 accept4
 pub fn accept(socket: c_int) -> Result<c_int, io::Error> {
-    println!("accept()");
     let addr: *mut libc::sockaddr = std::ptr::null_mut();
     let alen: *mut u32 = std::ptr::null_mut();
-    let sockfd = unsafe { libc::accept(socket, addr, alen) };
+
+    cfg_if::cfg_if! {
+        if #[cfg(not(target_vendor = "apple"))] {
+            println!("accept4()");
+            let sockfd = unsafe { libc::accept4(socket, addr, alen, SOCK_CLOEXEC) };
+        } else  {
+            println!("accept()");
+            let sockfd = unsafe { libc::accept(socket, addr, alen) };
+        }
+    }
+
     if sockfd < 0 {
         return Err(errno());
     }
