@@ -36,6 +36,8 @@ fn main() -> Result<(), io::Error> {
     setsockopt(listen_sockfd, libc::SOL_SOCKET, libc::SO_NOSIGPIPE, 1)?;
 
     // 2. bind()
+    #[cfg(not(windows))]
+    setsockopt(listen_sockfd, libc::SOL_SOCKET, libc::SO_REUSEADDR, 1)?;
     bind(
         listen_sockfd,
         sockaddr_in {
