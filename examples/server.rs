@@ -58,7 +58,7 @@ fn main() -> Result<(), io::Error> {
         loop {
             let mut rx_buf: RxBuffer = [0; RX_BUFFER_SIZE];
             let rx_bytes = read(client_sockfd, &mut rx_buf)? as usize;
-            if rx_bytes == 0 {
+            if rx_bytes < RX_BUFFER_SIZE {
                 break;
             }
             rx_data.extend(&rx_buf[0..rx_bytes]);
