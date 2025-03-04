@@ -47,13 +47,15 @@ fn main() -> Result<(), io::Error> {
 
     // 3
     let tx_bytes = write(sockfd, REQUEST.as_bytes())?;
-    println!("[tx_len={tx_bytes}] -> {REQUEST:?}");
+    dbg!(tx_bytes);
+    println!("<- {REQUEST:?}");
 
     // 4
     let mut buffer: RxBuffer = [0; RX_BUFFER_SIZE];
-    let rx_bytes = read(sockfd, &mut buffer)? as usize;
+    let rx_bytes = read(sockfd, &mut buffer)?;
     let rx_msg = std::str::from_utf8(&buffer[0..rx_bytes]).unwrap_or("");
-    println!("[rx_len={rx_bytes}] <- {rx_msg:?}");
+    dbg!(rx_bytes);
+    println!("-> {rx_msg:?}");
 
     // 5
     close(sockfd)?;

@@ -99,6 +99,7 @@ pub fn listen(socket: c_int, backlog: c_int) -> Result<(), io::Error> {
 }
 
 /// man 2 accept
+///
 /// man 2 accept4
 pub fn accept(socket: c_int) -> Result<c_int, io::Error> {
     let addr: *mut libc::sockaddr = std::ptr::null_mut();
@@ -121,23 +122,23 @@ pub fn accept(socket: c_int) -> Result<c_int, io::Error> {
 }
 
 /// man 2 read
-pub fn read(socket: c_int, buffer: &mut [u8]) -> Result<ssize_t, io::Error> {
+pub fn read(socket: c_int, buffer: &mut [u8]) -> Result<usize, io::Error> {
     println!("read()");
     let rx_bytes = unsafe { libc::read(socket, buffer.as_mut_ptr() as *mut c_void, buffer.len()) };
     if rx_bytes < 0 {
         return Err(errno());
     }
-    Ok(rx_bytes)
+    Ok(rx_bytes as usize)
 }
 
 /// man 2 write
-pub fn write(socket: c_int, buffer: &[u8]) -> Result<ssize_t, io::Error> {
+pub fn write(socket: c_int, buffer: &[u8]) -> Result<usize, io::Error> {
     println!("write()");
     let tx_bytes = unsafe { libc::write(socket, buffer.as_ptr() as *const c_void, buffer.len()) };
     if tx_bytes < 0 {
         return Err(errno());
     }
-    Ok(tx_bytes)
+    Ok(tx_bytes as usize)
 }
 
 /// man 2 close

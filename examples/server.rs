@@ -57,20 +57,20 @@ fn main() -> Result<(), io::Error> {
         let mut rx_data: Vec<u8> = Vec::with_capacity(RX_BUFFER_SIZE);
         loop {
             let mut rx_buf: RxBuffer = [0; RX_BUFFER_SIZE];
-            let rx_bytes = read(client_sockfd, &mut rx_buf)? as usize;
+            let rx_bytes = read(client_sockfd, &mut rx_buf)?;
+            dbg!(rx_bytes);
+            rx_data.extend(&rx_buf[0..rx_bytes]);
             if rx_bytes < RX_BUFFER_SIZE {
                 break;
             }
-            rx_data.extend(&rx_buf[0..rx_bytes]);
-            println!("<- [rx_bytes={rx_bytes}]");
         }
         let rx_msg = std::str::from_utf8(&rx_data).unwrap_or("");
-        println!("<- {rx_msg:?}");
+        println!("-> {rx_msg:?}");
 
         // 6
         let tx_bytes = write(client_sockfd, RESPONSE.as_bytes())?;
-        println!("-> [tx_bytes={tx_bytes}]");
-        println!("-> {RESPONSE:?}");
+        dbg!(tx_bytes);
+        println!("<- {RESPONSE:?}");
 
         // 7
         close(client_sockfd)?;
