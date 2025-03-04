@@ -10,6 +10,8 @@ const LISTEN_BACKLOG: i32 = 5;
 const RX_BUFFER_SIZE: usize = 8192;
 type RxBuffer = [u8; RX_BUFFER_SIZE];
 
+const RESPONSE: &str = "PONG\r\n";
+
 #[derive(Parser, Debug)]
 struct Args {
     #[clap(short, long)]
@@ -52,15 +54,23 @@ fn main() -> Result<(), io::Error> {
     // 4
     while let Ok(client_sockfd) = accept(listen_sockfd) {
         // 5
-        let mut buffer: RxBuffer = [0; RX_BUFFER_SIZE];
-        let rx_bytes = read(client_sockfd, &mut buffer)? as usize;
-        let rx_msg = std::str::from_utf8(&buffer[0..rx_bytes]).unwrap_or("");
-        println!("[rx_len={rx_bytes}] <- {rx_msg:?}");
+        let mut rx_data: Vec<u8> = Vec::with_capacity(RX_BUFFER_SIZE);
+        loop {
+            let mut rx_buf: RxBuffer = [0; RX_BUFFER_SIZE];
+            let rx_bytes = read(client_sockfd, &mut rx_buf)? as usize;
+            if rx_bytes == 0 {
+                break;
+            }
+            rx_data.extend(&rx_buf[0..rx_bytes]);
+            println!("<- [rx_bytes={rx_bytes}]");
+        }
+        let rx_msg = std::str::from_utf8(&rx_data).unwrap_or("");
+        println!("<- {rx_msg:?}");
 
         // 6
-        let message = "PONG\n\n";
-        let tx_bytes = write(client_sockfd, message.as_bytes())?;
-        println!("[tx_len={tx_bytes}] -> {message:?}");
+        let tx_bytes = write(client_sockfd, RESPONSE.as_bytes())?;
+        println!("-> [tx_bytes={tx_bytes}]");
+        println!("-> {RESPONSE:?}");
 
         // 7
         close(client_sockfd)?;
