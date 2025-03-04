@@ -49,9 +49,8 @@ fn handle_connection(stream: TcpStream) -> io::Result<()> {
     dbg!(&request);
 
     let mut buf_writer = BufWriter::with_capacity(TX_BUFFER, &stream);
-    match request.first().map(String::as_str) {
-        Some(REQUEST) => buf_writer.write_all(RESPONSE.as_bytes())?,
-        _ => {}
+    if let Some(REQUEST) = request.first().map(String::as_str) {
+        buf_writer.write_all(RESPONSE.as_bytes())?
     };
 
     Ok(())

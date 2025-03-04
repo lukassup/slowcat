@@ -9,7 +9,7 @@ use clap::Parser;
 
 const RX_BUFFER: usize = 8192; // Rust default on most platforms
 const TX_BUFFER: usize = 8192; // Rust default on most platforms
-const REQUEST: &str = "PING\r\n";
+const REQUEST: &str = "PING\r\n\r\n";
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -29,9 +29,10 @@ fn main() -> io::Result<()> {
 }
 
 fn handle_connection(mut stream: TcpStream) -> io::Result<()> {
-    let mut buf_writer = BufWriter::with_capacity(TX_BUFFER, &mut stream);
-    buf_writer.write_all(REQUEST_GET.as_bytes())?;
-    drop(buf_writer);
+    {
+        let mut buf_writer = BufWriter::with_capacity(TX_BUFFER, &mut stream);
+        buf_writer.write_all(REQUEST.as_bytes())?;
+    }
 
     let buf_reader = BufReader::with_capacity(RX_BUFFER, &stream);
     let response: Vec<_> = buf_reader

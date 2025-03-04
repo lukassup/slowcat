@@ -9,7 +9,7 @@ use clap::Parser;
 const RX_BUFFER_SIZE: usize = 8192;
 type RxBuffer = [u8; RX_BUFFER_SIZE];
 
-const REQUEST: &str = "PING\r\n";
+const REQUEST: &str = "PING\r\n\r\n";
 
 #[derive(Parser, Debug)]
 struct Args {
