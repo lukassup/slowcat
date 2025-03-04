@@ -9,6 +9,8 @@ use clap::Parser;
 const RX_BUFFER_SIZE: usize = 8192;
 type RxBuffer = [u8; RX_BUFFER_SIZE];
 
+const REQUEST: &str = "PING\r\n";
+
 #[derive(Parser, Debug)]
 struct Args {
     #[clap(short, long)]
@@ -44,9 +46,8 @@ fn main() -> Result<(), io::Error> {
     )?;
 
     // 3
-    let message = "PING\n\n";
-    let tx_bytes = write(sockfd, message.as_bytes())?;
-    println!("[tx_len={tx_bytes}] -> {message:?}");
+    let tx_bytes = write(sockfd, REQUEST.as_bytes())?;
+    println!("[tx_len={tx_bytes}] -> {REQUEST:?}");
 
     // 4
     let mut buffer: RxBuffer = [0; RX_BUFFER_SIZE];
